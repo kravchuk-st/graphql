@@ -6,12 +6,12 @@ import { User } from '@prisma/client';
 
 export const UserQueries = {
   user: {
-    type: UserType,
+    type: new GraphQLNonNull(UserType),
     args: {
       id: { type: new GraphQLNonNull(UUIDType) },
     },
     resolve: async (_: unknown, { id }: User, { prisma }: Context) => {
-      const user = await prisma.user.findUnique({ where: { id } });
+      const user = await prisma.user.findFirst({ where: { id } });
       return user;
     },
   },
