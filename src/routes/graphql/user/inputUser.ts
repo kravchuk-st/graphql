@@ -1,27 +1,29 @@
-import {
-  GraphQLFloat,
-  GraphQLInputObjectType,
-  GraphQLNonNull,
-  GraphQLString,
-} from 'graphql';
+import { GraphQLFloat, GraphQLInputObjectType, GraphQLString } from 'graphql';
 
-const commonFields = {
-  name: { type: GraphQLString },
-  balance: { type: GraphQLFloat },
-};
-
-const createUserInput = new GraphQLInputObjectType({
+export const CreateUserInput = new GraphQLInputObjectType({
   name: 'CreateUserInput',
-  fields: {
-    name: { type: new GraphQLNonNull(GraphQLString) },
-    balance: { type: new GraphQLNonNull(GraphQLFloat) },
-  },
+  fields: () => ({
+    name: { type: GraphQLString },
+    balance: { type: GraphQLFloat },
+  }),
 });
 
-const changeUserInput = new GraphQLInputObjectType({
+export const ChangeUserInput = new GraphQLInputObjectType({
   name: 'ChangeUserInput',
-  fields: commonFields,
+  fields: () => ({ name: { type: GraphQLString }, balance: { type: GraphQLFloat } }),
 });
 
-export const CreateUserInput = createUserInput;
-export const ChangeUserInput = changeUserInput;
+export interface CreateUserInputType {
+  dto: {
+    name: string;
+    balance: number;
+  };
+}
+
+export interface ChangeUserInputType {
+  id: string;
+  dto: {
+    name: string;
+    balance: number;
+  };
+}

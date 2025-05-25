@@ -6,22 +6,17 @@ import { Context } from '../types/context.js';
 
 export const PostQueries = {
   post: {
-    type: new GraphQLNonNull(PostType),
+    type: PostType,
     args: {
       id: { type: new GraphQLNonNull(UUIDType) },
     },
-    resolve: async (__: unknown, args: Post, { prisma }: Context) => {
-      const { id } = args;
-      const post = await prisma.post.findUnique({ where: { id } });
-      return post;
-    },
+    resolve: async (__: unknown, { id }: Post, { prisma }: Context) =>
+      await prisma.post.findUnique({ where: { id } }),
   },
 
   posts: {
     type: new GraphQLList(PostType),
-    resolve: async (__: unknown, _: unknown, { prisma }: Context) => {
-      const posts = await prisma.post.findMany();
-      return posts;
-    },
+    resolve: async (__: unknown, _: unknown, { prisma }: Context) =>
+      await prisma.post.findMany(),
   },
 };
