@@ -1,14 +1,10 @@
 import { User } from '@prisma/client';
 import { Context } from '../types/context.js';
-import {
-  ChangeUserInput,
-  ChangeUserInputType,
-  CreateUserInput,
-  CreateUserInputType,
-} from './inputUser.js';
+import { ChangeUserInput, CreateUserInput } from './inputUser.js';
 import { UserType } from './typeUser.js';
 import { UUIDType } from '../types/uuid.js';
 import { GraphQLNonNull, GraphQLObjectType } from 'graphql';
+import { ChangeUserInputType, CreateUserInputType } from '../types/input.js';
 
 export const UserMutations = {
   createUser: {
@@ -22,7 +18,7 @@ export const UserMutations = {
     type: UserType as GraphQLObjectType,
     args: {
       id: { type: new GraphQLNonNull(UUIDType) },
-      dto: { type: new GraphQLNonNull(ChangeUserInput) },
+      dto: { type: ChangeUserInput },
     },
     resolve: async (
       __: unknown,
@@ -42,8 +38,8 @@ export const UserMutations = {
   subscribeTo: {
     type: UserType as GraphQLObjectType,
     args: {
-      userId: { type: UUIDType },
-      authorId: { type: UUIDType },
+      userId: { type: new GraphQLNonNull(UUIDType) },
+      authorId: { type: new GraphQLNonNull(UUIDType) },
     },
     resolve: async (
       __: unknown,
@@ -60,8 +56,8 @@ export const UserMutations = {
   unsubscribeFrom: {
     type: UUIDType,
     args: {
-      userId: { type: UUIDType },
-      authorId: { type: UUIDType },
+      userId: { type: new GraphQLNonNull(UUIDType) },
+      authorId: { type: new GraphQLNonNull(UUIDType) },
     },
     resolve: async (
       __: unknown,

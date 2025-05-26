@@ -1,6 +1,8 @@
 import { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import { createGqlResponseSchema, gqlResponseSchema, graphQLSchema } from './schemas.js';
-import { graphql } from 'graphql';
+import { graphql, validate, parse, GraphQLError } from 'graphql';
+import depthLimit from 'graphql-depth-limit';
+import { initializeDataLoaders } from './dataLoader/dataLoader.js';
 
 const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
   const { prisma } = fastify;
@@ -16,17 +18,35 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
     },
     async handler(req) {
       const { query, variables } = req.body;
+      const loaders = initializeDataLoaders(prisma);
 
-      const { data, errors } = await graphql({
-        schema: graphQLSchema,
-        source: query,
-        variableValues: variables,
-        contextValue: {
-          prisma,
-        },
-      });
+      try {
+        const validationErrors = validate(graphQLSchema, parse(query), [depthLimit(5)]);
 
-      return { data, errors };
+        if (validationErrors.length > 0) {
+          console.log('Maximum operation depth is 5');
+          return { errors: validationErrors };
+        }
+
+        const { data, errors } = await graphql({
+          schema: graphQLSchema,
+          source: query,
+          variableValues: variables,
+          contextValue: {
+            prisma,
+            loaders,
+          },
+        });
+
+        return { data, errors };
+      } catch (error: unknown) {
+        if (error instanceof GraphQLError) {
+          console.error('GraphQL Error:', error.message);
+          return { errors: [error] };
+        } else {
+          return { errors: [error] };
+        }
+      }
     },
   });
 };
