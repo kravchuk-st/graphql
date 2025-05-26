@@ -29,7 +29,7 @@ export const UserQueries = {
     resolve: async (
       _: unknown,
       __: unknown,
-      { prisma }: Context,
+      { prisma, loaders }: Context,
       info: GraphQLResolveInfo,
     ) => {
       const parsedInfo = parseResolveInfo(info) as ResolveTree;
@@ -44,10 +44,14 @@ export const UserQueries = {
       const includeFields = ['userSubscribedTo', 'subscribedToUser'];
 
       for (const field of includeFields) {
-        include[field] = fields[field] !== null;
+        include[field] = fields[field] !== undefined;
       }
 
       const users = await prisma.user.findMany({ include });
+
+      users.forEach((user) => {
+        loaders.userDataLoader.prime(user.id, user);
+      });
 
       return users;
     },
