@@ -3,10 +3,11 @@
   "compilerOptions": {
     "noImplicitAny": false,
     "noUnusedLocals": false,
+    "target": "ES2022",
     "outDir": "dist",
     "sourceMap": true,
     "moduleResolution": "nodenext",
-    "module": "NodeNext"
+    "module": "NodeNext",
   },
-  "include": ["src/**/*.ts"]
+  "include": ["src/**/*.ts"],
 }
