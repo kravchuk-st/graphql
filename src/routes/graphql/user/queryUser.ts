@@ -40,18 +40,17 @@ export const UserQueries = {
         returnType,
       );
 
-      const include = {};
+      const include: Record<string, boolean> = {};
       const includeFields = ['userSubscribedTo', 'subscribedToUser'];
 
       for (const field of includeFields) {
-        include[field] = fields[field] !== undefined;
+        if (fields[field]) {
+          include[field] = true;
+        }
       }
 
-      const users = await prisma.user.findMany({ include });
-
-      users.forEach((user) => {
-        loaders.userDataLoader.prime(user.id, user);
-      });
+      const prismaArgs: any = Object.keys(include).length > 0 ? { include } : {};
+      const users = await prisma.user.findMany(prismaArgs);
 
       return users;
     },

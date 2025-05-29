@@ -6,4 +6,6 @@ export interface DataLoaders {
   memberTypeDataLoader: DataLoader<string, MemberType | undefined>;
   profileDataLoader: DataLoader<string, Profile | undefined>;
   userDataLoader: DataLoader<string, User | undefined>;
+  userSubscriptionsLoader: DataLoader<string, User[]>;
+  userSubscribersLoader: DataLoader<string, User[]>;
 }

@@ -77,7 +77,6 @@ export const initializeDataLoaders = (prisma: PrismaClient): DataLoaders => {
     >(async (keys: readonly string[]) => {
       const users = await prisma.user.findMany({
         where: { id: { in: [...keys] } },
-        include: { userSubscribedTo: true, subscribedToUser: true },
       });
 
       const usersMap = new Map<string, User>();
@@ -92,10 +91,40 @@ export const initializeDataLoaders = (prisma: PrismaClient): DataLoaders => {
     return userDataLoader;
   };
 
+  const batchUserSubscriptionsDataLoader = (prisma: PrismaClient) =>
+    new DataLoader(async (userIds: readonly string[]) => {
+      const subscriptions = await prisma.subscribersOnAuthors.findMany({
+        where: { subscriberId: { in: [...userIds] } },
+        include: { author: true },
+      });
+
+      return userIds.map((userId) =>
+        subscriptions
+          .filter((sub) => sub.subscriberId === userId)
+          .map((sub) => sub.author),
+      );
+    });
+
+  const batchUserSubscribersDataLoader = (prisma: PrismaClient) =>
+    new DataLoader(async (userIds: readonly string[]) => {
+      const subscriptions = await prisma.subscribersOnAuthors.findMany({
+        where: { authorId: { in: [...userIds] } },
+        include: { subscriber: true },
+      });
+
+      return userIds.map((userId) =>
+        subscriptions
+          .filter((sub) => sub.authorId === userId)
+          .map((sub) => sub.subscriber),
+      );
+    });
+
   return {
     postDataLoader: batchPostDataLoader(prisma),
     memberTypeDataLoader: batchMemberTypeDataLoader(prisma),
     profileDataLoader: batchProfileDataLoader(prisma),
     userDataLoader: batchUserDataLoader(prisma),
+    userSubscriptionsLoader: batchUserSubscriptionsDataLoader(prisma),
+    userSubscribersLoader: batchUserSubscribersDataLoader(prisma),
   };
 };

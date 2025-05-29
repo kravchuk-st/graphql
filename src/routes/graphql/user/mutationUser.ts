@@ -3,7 +3,7 @@ import { Context } from '../types/context.js';
 import { ChangeUserInput, CreateUserInput } from './inputUser.js';
 import { UserType } from './typeUser.js';
 import { UUIDType } from '../types/uuid.js';
-import { GraphQLNonNull, GraphQLObjectType } from 'graphql';
+import { GraphQLBoolean, GraphQLNonNull, GraphQLObjectType } from 'graphql';
 import { ChangeUserInputType, CreateUserInputType } from '../types/input.js';
 
 export const UserMutations = {
@@ -13,7 +13,6 @@ export const UserMutations = {
     resolve: async (__: unknown, { dto }: CreateUserInputType, { prisma }: Context) =>
       await prisma.user.create({ data: dto }),
   },
-
   changeUser: {
     type: UserType as GraphQLObjectType,
     args: {
@@ -26,7 +25,6 @@ export const UserMutations = {
       { prisma }: Context,
     ) => await prisma.user.update({ where: { id }, data: dto }),
   },
-
   deleteUser: {
     type: UUIDType,
     args: { id: { type: new GraphQLNonNull(UUIDType) } },
@@ -36,44 +34,35 @@ export const UserMutations = {
     },
   },
   subscribeTo: {
-    type: UserType as GraphQLObjectType,
+    type: GraphQLBoolean,
     args: {
       userId: { type: new GraphQLNonNull(UUIDType) },
       authorId: { type: new GraphQLNonNull(UUIDType) },
     },
-    resolve: async (
-      __: unknown,
-      args: { userId: string; authorId: string },
-      { prisma }: Context,
-    ) => {
-      const { userId, authorId } = args;
-      return await prisma.user.update({
-        where: { id: userId },
-        data: { userSubscribedTo: { create: { authorId } } },
+    resolve: async (_, { userId, authorId }, { prisma }) => {
+      await prisma.subscribersOnAuthors.create({
+        data: {
+          subscriberId: userId,
+          authorId: authorId,
+        },
       });
+      return true;
     },
   },
   unsubscribeFrom: {
-    type: UUIDType,
+    type: GraphQLBoolean,
     args: {
       userId: { type: new GraphQLNonNull(UUIDType) },
       authorId: { type: new GraphQLNonNull(UUIDType) },
     },
-    resolve: async (
-      __: unknown,
-      args: { userId: string; authorId: string },
-      { prisma }: Context,
-    ) => {
-      const { userId, authorId } = args;
-      await prisma.subscribersOnAuthors.delete({
+    resolve: async (_, { userId, authorId }, { prisma }) => {
+      await prisma.subscribersOnAuthors.deleteMany({
         where: {
-          subscriberId_authorId: {
-            subscriberId: userId,
-            authorId,
-          },
+          subscriberId: userId,
+          authorId: authorId,
         },
       });
-      return userId;
+      return true;
     },
   },
 };
